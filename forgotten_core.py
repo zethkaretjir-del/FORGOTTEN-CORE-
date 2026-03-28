@@ -107,7 +107,7 @@ class ForgottenCore:
     def prompt(self):
         """Kali Linux style prompt"""
         path = self.get_path()
-        return f"{Colors.RED}{Colors.BOLD}┌──({Colors.GREEN}{self.user}@{Colors.CYAN}{self.host}{Colors.RED})-{Colors.BLUE}[{path}]{Colors.RED}\n└─{Colors.WHITE}${Colors.END} "
+        return f"{Colors.RED}{Colors.BOLD}┌──({Colors.RED}{self.user}@{Colors.RED}{self.host}{Colors.RED})-{Colors.RED}[{path}]{Colors.RED}\n└─{Colors.WHITE}${Colors.END} "
     
     def clear_screen(self):
         os.system("clear")
@@ -140,24 +140,24 @@ class ForgottenCore:
     def show_help(self):
         """Show all available commands"""
         help_text = f"""
-{Colors.CYAN}{Colors.BOLD}╔═══════════════════════════════════════════════════════════════════════════╗
+{Colors.RED}{Colors.BOLD}╔═══════════════════════════════════════════════════════════════════════════╗
 ║                         AVAILABLE COMMANDS                                          ║
 ╠═══════════════════════════════════════════════════════════════════════════╣{Colors.END}
-{Colors.GREEN}
+{Colors.DARK_RED}
   ╔═══════════════════════════════════════════════════════════════════════════╗
   ║  {Colors.BOLD}🔥 ATTACK MODULES{Colors.END}                                                              
   ╠═══════════════════════════════════════════════════════════════════════════╣{Colors.END}
-{Colors.GREEN}
+{Colors.RED}
     [01] {Colors.WHITE}wifi / w{Colors.DIM}          - WiFi attacks (deauth, scan, handshake){Colors.END}
     [02] {Colors.WHITE}payload / p{Colors.DIM}      - Generate reverse shell payloads (6 types){Colors.END}
     [03] {Colors.WHITE}c2 / server{Colors.DIM}      - Start C2 / listener server{Colors.END}
     [04] {Colors.WHITE}stealth / s{Colors.DIM}      - Clean traces, wipe logs{Colors.END}
     [05] {Colors.WHITE}anon / a{Colors.DIM}         - Anonymity (Tor, proxy chain){Colors.END}
-{Colors.GREEN}
+{Colors.DARK_RED}
   ╔═══════════════════════════════════════════════════════════════════════════╗
   ║  {Colors.BOLD}🔍 OSINT & RECON MODULES{Colors.END}                                                         
   ╠═══════════════════════════════════════════════════════════════════════════╣{Colors.END}
-{Colors.GREEN}
+{Colors.RED}
     [06] {Colors.WHITE}phone / tel{Colors.DIM}      - Phone number OSINT with carrier detection{Colors.END}
     [07] {Colors.WHITE}ip / geo{Colors.DIM}         - IP address geolocation tracker{Colors.END}
     [08] {Colors.WHITE}username / user{Colors.DIM}  - Check username across 20+ social media{Colors.END}
@@ -168,11 +168,11 @@ class ForgottenCore:
     [13] {Colors.WHITE}whois{Colors.DIM}            - WHOIS domain lookup{Colors.END}
     [14] {Colors.WHITE}dns{Colors.DIM}              - DNS lookup (A, MX, NS, TXT, etc){Colors.END}
     [15] {Colors.WHITE}reverseip / revip{Colors.DIM} - Reverse IP / PTR lookup{Colors.END}
-{Colors.GREEN}
+{Colors.DARK_RED}
   ╔═══════════════════════════════════════════════════════════════════════════╗
   ║  {Colors.BOLD}🛠️ UTILITY MODULES{Colors.END}                                                              
   ╠═══════════════════════════════════════════════════════════════════════════╣{Colors.END}
-{Colors.GREEN}
+{Colors.RED}
     [16] {Colors.WHITE}crypt / encrypt{Colors.DIM}  - AES file encryption/decryption{Colors.END}
     [17] {Colors.WHITE}hash{Colors.DIM}             - Hash generator (MD5, SHA1, SHA256, SHA512){Colors.END}
     [18] {Colors.WHITE}encode{Colors.DIM}           - Base64/URL encoder decoder{Colors.END}
@@ -180,15 +180,15 @@ class ForgottenCore:
     [20] {Colors.WHITE}webcam{Colors.DIM}           - Webcam capture (termux-api){Colors.END}
     [21] {Colors.WHITE}passgen / pg{Colors.DIM}     - Random password generator{Colors.END}
     [22] {Colors.WHITE}banner{Colors.DIM}           - Custom ASCII banner generator{Colors.END}
-{Colors.GREEN}
+{Colors.DARK_RED}
   ╔═══════════════════════════════════════════════════════════════════════════╗
   ║  {Colors.BOLD}⚙️ SYSTEM COMMANDS{Colors.END}                                                             
   ╠═══════════════════════════════════════════════════════════════════════════╣{Colors.END}
-{Colors.GREEN}
+{Colors.ASH_GRAY}
     [23] {Colors.WHITE}clear / cls{Colors.DIM}      - Clear screen{Colors.END}
     [24] {Colors.WHITE}help / ?{Colors.DIM}         - Show this help{Colors.END}
     [25] {Colors.WHITE}exit / quit{Colors.DIM}      - Exit Forgotten Core{Colors.END}
-{Colors.CYAN}╚═══════════════════════════════════════════════════════════════════════════╝{Colors.END}
+{Colors.DARK_RED}╚═══════════════════════════════════════════════════════════════════════════╝{Colors.END}
         """
         print(help_text)
     
@@ -219,14 +219,14 @@ class ForgottenCore:
             return
         
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.BLOOD_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    VOID WIFI ATTACKS                                ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
 
-{Colors.GREEN}[1]{Colors.WHITE} Deauth Attack
-{Colors.GREEN}[2]{Colors.WHITE} Scan Networks
-{Colors.GREEN}[3]{Colors.WHITE} Capture Handshake
-{Colors.GREEN}[4]{Colors.WHITE} Back
+{Colors.RED}[1]{Colors.WHITE} Deauth Attack
+{Colors.RED}[2]{Colors.WHITE} Scan Networks
+{Colors.RED}[3]{Colors.WHITE} Capture Handshake
+{Colors.ASH_GRAY}[4]{Colors.WHITE} Back
         """)
         choice = input(self.prompt())
         
@@ -250,13 +250,13 @@ class ForgottenCore:
 ║                    ABYSS PAYLOAD GENERATOR                           ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
 
-{Colors.GREEN}[1]{Colors.WHITE} Python Reverse Shell
-{Colors.GREEN}[2]{Colors.WHITE} Bash Reverse Shell
-{Colors.GREEN}[3]{Colors.WHITE} PowerShell Reverse Shell
-{Colors.GREEN}[4]{Colors.WHITE} PHP Reverse Shell
-{Colors.GREEN}[5]{Colors.WHITE} Perl Reverse Shell
-{Colors.GREEN}[6]{Colors.WHITE} Ruby Reverse Shell
-{Colors.GREEN}[7]{Colors.WHITE} Back
+{Colors.RED}[1]{Colors.WHITE} Python Reverse Shell
+{Colors.RED}[2]{Colors.WHITE} Bash Reverse Shell
+{Colors.RED}[3]{Colors.WHITE} PowerShell Reverse Shell
+{Colors.RED}[4]{Colors.WHITE} PHP Reverse Shell
+{Colors.RED}[5]{Colors.WHITE} Perl Reverse Shell
+{Colors.RED}[6]{Colors.WHITE} Ruby Reverse Shell
+{Colors.ASH_GRAY}[7]{Colors.WHITE} Back
         """)
         choice = input(self.prompt())
         
@@ -332,44 +332,44 @@ end''',
         
         print(f"""
 {Colors.GREEN}[+] Payload saved: {filename}{Colors.END}
-{Colors.CYAN}[*] Type: {lang[choice]} Reverse Shell{Colors.END}
-{Colors.CYAN}[*] LHOST: {lhost} | LPORT: {lport}{Colors.END}
+{Colors.WHITE}[*] Type: {lang[choice]} Reverse Shell{Colors.END}
+{Colors.WHITE}[*] LHOST: {lhost} | LPORT: {lport}{Colors.END}
         """)
     
     def start_c2(self):
         """Start C2 / listener server"""
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.DARK_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    SPECTRE C2 SERVER                                 ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
 
-{Colors.GREEN}[1]{Colors.WHITE} HTTP Server (python)
-{Colors.GREEN}[2]{Colors.WHITE} Netcat Listener
-{Colors.GREEN}[3]{Colors.WHITE} Back
+{Colors.RED}[1]{Colors.WHITE} HTTP Server (python)
+{Colors.RED}[2]{Colors.WHITE} Netcat Listener
+{Colors.ASH_GRAY}[3]{Colors.WHITE} Back
         """)
         choice = input(self.prompt())
         
         if choice == '1':
             port = input(f"{self.prompt()}port (80) > ") or "80"
-            print(f"{Colors.CYAN}[*] Starting HTTP server on port {port}{Colors.END}")
+            print(f"{Colors.YELLOW}[*] Starting HTTP server on port {port}{Colors.END}")
             os.system(f"python3 -m http.server {port}")
         elif choice == '2':
             port = input(f"{self.prompt()}port (4444) > ") or "4444"
-            print(f"{Colors.CYAN}[*] Starting netcat listener on port {port}{Colors.END}")
+            print(f"{Colors.YELLOW}[*] Starting netcat listener on port {port}{Colors.END}")
             os.system(f"nc -lvnp {port}")
     
     def stealth_clean(self):
         """Clean traces and logs"""
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.DARK_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    CRYPT STEALTH CLEANER                             ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
 
-{Colors.GREEN}[1]{Colors.WHITE} Wipe Bash/Zsh History
-{Colors.GREEN}[2]{Colors.WHITE} Clear System Logs
-{Colors.GREEN}[3]{Colors.WHITE} Delete Temp Files
-{Colors.GREEN}[4]{Colors.WHITE} Full Forensic Cleanup
-{Colors.GREEN}[5]{Colors.WHITE} Back
+{Colors.RED}[1]{Colors.WHITE} Wipe Bash/Zsh History
+{Colors.RED}[2]{Colors.WHITE} Clear System Logs
+{Colors.RED}[3]{Colors.WHITE} Delete Temp Files
+{Colors.RED}[4]{Colors.WHITE} Full Forensic Cleanup
+{Colors.ASH_GRAY}[5]{Colors.WHITE} Back
         """)
         choice = input(self.prompt())
         
@@ -395,7 +395,7 @@ end''',
     def anonymity(self):
         """Anonymity module with Tor and proxy"""
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.DARK_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    VOID ANONYMITY MODULE                             ║
 ║              "Vanish without a trace"                                 ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
@@ -426,7 +426,7 @@ end''',
     def phone_osint(self):
         """Phone number OSINT with Indonesia carrier detection"""
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.BLOOD_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    PHONE OSINT MODULE                                ║
 ║              "Unmask the caller"                                      ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
@@ -447,8 +447,8 @@ end''',
         else:
             formatted = clean_number
         
-        print(f"{Colors.CYAN}[*] Cleaning: {raw_number} -> {formatted}{Colors.END}")
-        print(f"{Colors.CYAN}[*] Fetching data for {formatted}{Colors.END}\n")
+        print(f"{Colors.YALLOW}[*] Cleaning: {raw_number} -> {formatted}{Colors.END}")
+        print(f"{Colors.YALLOW}[*] Fetching data for {formatted}{Colors.END}\n")
         
         # Indonesia carrier database
         indonesian_prefixes = {
@@ -489,7 +489,7 @@ end''',
             print(f"    Type: International")
         
         # OSINT Tips
-        print(f"\n{Colors.CYAN}[*] OSINT Tips:{Colors.END}")
+        print(f"\n{Colors.GREEN}[*] OSINT Tips:{Colors.END}")
         print(f"    • WhatsApp: https://wa.me/{formatted}")
         print(f"    • Telegram: https://t.me/+{formatted[1:]}")
         print(f"    • Google: https://www.google.com/search?q={formatted}")
@@ -508,7 +508,7 @@ end''',
     def ip_tracker(self):
         """IP address geolocation tracker"""
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.BLOOD_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    IP TRACKER MODULE                                 ║
 ║              "Trace the digital footprint"                           ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
@@ -546,7 +546,7 @@ end''',
     def username_check(self):
         """Check username across social media platforms"""
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.BLOOD_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    USERNAME OSINT MODULE                             ║
 ║              "Find digital footprints"                               ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
@@ -570,7 +570,7 @@ end''',
             "Snapchat": f"https://www.snapchat.com/add/{username}",
         }
         
-        print(f"\n{Colors.CYAN}[*] Checking username: {username}{Colors.END}\n")
+        print(f"\n{Colors.YALLOW}[*] Checking username: {username}{Colors.END}\n")
         
         found = []
         for site, url in sites.items():
@@ -593,7 +593,7 @@ end''',
     def subdomain_scan(self):
         """Subdomain scanner"""
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.BLOOD_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    SUBDOMAIN SCANNER                                 ║
 ║              "Discover hidden services"                              ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
@@ -611,7 +611,7 @@ end''',
             "account", "manager", "status", "stats", "cdn", "assets"
         ]
         
-        print(f"{Colors.CYAN}[*] Scanning {domain}{Colors.END}\n")
+        print(f"{Colors.YALLOW}[*] Scanning {domain}{Colors.END}\n")
         
         found = []
         for sub in subdomains:
@@ -632,7 +632,7 @@ end''',
     def port_scanner(self):
         """Fast TCP port scanner"""
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.BLOOD_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    PORT SCANNER MODULE                               ║
 ║              "Find open doors"                                        ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
@@ -646,7 +646,7 @@ end''',
         else:
             port_range = [int(p.strip()) for p in ports_input.split(',')]
         
-        print(f"{Colors.CYAN}[*] Scanning {target}...{Colors.END}\n")
+        print(f"{Colors.YALLOW}[*] Scanning {target}...{Colors.END}\n")
         
         open_ports = []
         total = len(port_range)
@@ -673,7 +673,7 @@ end''',
     def dork_generator(self):
         """Google dork generator"""
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.BLOOD_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    GOOGLE DORK GENERATOR                             ║
 ║              "Find hidden data"                                       ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
@@ -721,7 +721,7 @@ end''',
     def email_osint(self):
         """Email OSINT"""
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.BLOOD_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    EMAIL OSINT MODULE                                ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
         """)
@@ -755,7 +755,7 @@ end''',
     def whois_lookup(self):
         """WHOIS lookup"""
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.BLOOD_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    WHOIS LOOKUP MODULE                               ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
         """)
@@ -782,7 +782,7 @@ end''',
     def dns_lookup(self):
         """DNS lookup"""
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.BLOOD_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    DNS LOOKUP MODULE                                 ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
         """)
@@ -803,7 +803,7 @@ end''',
     def reverse_ip(self):
         """Reverse IP lookup"""
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.BLOOD_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    REVERSE IP LOOKUP                                 ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
         """)
@@ -824,13 +824,13 @@ end''',
     def file_crypt(self):
         """File encryption/decryption"""
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.BLOOD_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    FILE CRYPT MODULE                                 ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
         """)
         
-        print(f"{Colors.GREEN}[1]{Colors.WHITE} Encrypt")
-        print(f"{Colors.GREEN}[2]{Colors.WHITE} Decrypt")
+        print(f"{Colors.RED}[1]{Colors.WHITE} Encrypt")
+        print(f"{Colors.RED}[2]{Colors.WHITE} Decrypt")
         choice = input(self.prompt())
         
         if choice == '1':
@@ -907,7 +907,7 @@ end''',
     def mac_changer(self):
         """MAC address changer"""
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.BLOOD_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    MAC CHANGER MODULE                                ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
         """)
@@ -929,7 +929,7 @@ end''',
     def webcam_capture(self):
         """Webcam capture"""
         print(f"""
-{Colors.RED}╔═══════════════════════════════════════════════════════════════╗
+{Colors.BLOOD_RED}╔═══════════════════════════════════════════════════════════════╗
 ║                    WEBCAM CAPTURE                                    ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
         """)
